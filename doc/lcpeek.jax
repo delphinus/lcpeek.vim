@@ -28,6 +28,12 @@ g:peekdir						*g:peekdir*
 	詳細は|PeekInput()|参照。
 
 
+g:peekmsg						*g:peekmsg*
+	（数値  規定値: 0）
+	1なら|PeekInput()|したとき現在の記録した変数の値をechomsgする。
+	後に:messagesすることで変数の変化を追うのに使える。
+
+
 g:{varname}
 	（リスト  規定値： []）
 	|PeekInput()|を呼ぶことで作成される。
