@@ -18,12 +18,12 @@ function! PeekReset() "{{{
 endfunction "}}}
 
 function! PeekInput(varname, varval, ...) "{{{
-  if a:0
+  if a:0 "{{{
     let peeknum = a:1
   else
     let s:peeknum +=1
     let peeknum = s:peeknum
-  endif
+  endif "}}}
   let varname = substitute(a:varname,'\V:\|/\|\\\|*\|?\|"\|<\|>\||', '_', 'g')
 
   if !exists('g:'.varname)
@@ -31,7 +31,9 @@ function! PeekInput(varname, varval, ...) "{{{
     exe 'call add(s:peeklist, varname)'
   endif
 
-  exe 'call add(g:'.varname.', peeknum.":		".string(a:varval))'
+
+  let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
+  exe 'call add(g:'.varname.', peeknum.":		".string(a:varval)."		".stacktrace)'
 
   if !isdirectory(s:peekdir)
     call mkdir(s:peekdir)

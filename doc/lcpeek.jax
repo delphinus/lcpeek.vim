@@ -43,7 +43,7 @@ PeekInput({varname}, {varval}, [{num}])			*PeekInput()*
 	文字(_)にリネームされる。
 	ファイルの中身は一行が次のフォーマットである。
 
-		番号{num}:		値{varval}
+		番号{num}:    値{varval}    stacktrace(どこで呼ばれたか)
 
 	同じ変数名の変数が記録される度に、後に行が追加されていく。
 	これにより、ある変数の値の変化を追うことが出来る。
@@ -86,22 +86,23 @@ PeekReset()						*PeekReset()*
 	ここで、Test()を5回呼ぶと‥‥
 
 	.lcpeek/s_listファイルの中身 >
-		1:		[4]
-		2:		[4, 6]
-		3:		[4, 6, 8]
-		4:		[4, 6, 8, 10]
-		5:		[4, 6, 8, 10, 12]
+		1:		[4]			function Test
+		2:		[4, 6]			function Test
+		3:		[4, 6, 8]		function Test
+		4:		[4, 6, 8, 10]		function Test
+		5:		[4, 6, 8, 10, 12]	function Test
 <	.lcpeek/listlenファイルの中身 >
-		1:		1
-		2:		2
-		3:		3
-		4:		4
-		5:		5
+		1:		1		function Test
+		2:		2		function Test
+		3:		3		function Test
+		4:		4		function Test
+		5:		5		function Test
 <
 	また、:call PeekEcho()すると以下が表示される。 >
 		LcPeek:
 		s_list =5:              [4, 6, 8, 10, 12]
-		listlen =5:             5
+		function Test
+		listlen =5:             5               function Test  
 <
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:nolist:
