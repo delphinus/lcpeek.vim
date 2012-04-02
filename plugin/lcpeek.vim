@@ -24,7 +24,7 @@ function! PeekInput(varname, varval, ...) "{{{
     let s:peeknum +=1
     let peeknum = s:peeknum
   endif
-  let varname = tr(a:varname,':','_')
+  let varname = substitute(a:varname,'\V:\|/\|\\\|*\|?\|"\|<\|>\||', '_', 'g')
 
   if !exists('g:'.varname)
     exe 'let g:'.varname.' = []'

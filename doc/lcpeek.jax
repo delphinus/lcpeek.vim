@@ -39,8 +39,8 @@ g:{varname}
 PeekInput({varname}, {varval}, [{num}])			*PeekInput()*
 	変数名{varname}の値{varval}を記録する。
 	|g:peekdir|に変数名をファイル名にしたファイルが作成される。
-	変数名がファイル名に使えない名前を含むときは、ファイル名に使える
-	名前にリネームされる。
+	変数名がファイル名に使えない文字を含むときは、全てファイル名に使える
+	文字(_)にリネームされる。
 	ファイルの中身は一行が次のフォーマットである。
 
 		番号{num}:		値{varval}
@@ -75,16 +75,16 @@ PeekReset()						*PeekReset()*
 
 		:function! Test()
 		:  let s:i +=1
-		:  let s:j *=2
+		:  let s:j +=2
 		:  call add(s:list, s:j)
 		:  let listlen = len(s:list)
 
 		:  call PeekInput('s:list', s:list, s:i)
 		:  call PeekInput('listlen', listlen, s:i)
 		:endfunction
+<	記録したい変数についてPeekInput()を仕込む。
+	ここで、Test()を5回呼ぶと‥‥
 
-
-<	ここで、Test()を5回呼ぶと‥‥
 	.lcpeek/s_listファイルの中身 >
 		1:		[4]
 		2:		[4, 6]
