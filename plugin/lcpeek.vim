@@ -10,33 +10,35 @@ let s:peekdir = fnamemodify(g:peekdir, ':p').'.lcpeek/'
 let s:peeklist = []
 let s:peeknum = -1
 
+"PeekInputが使われている部分を多少目立たせる
+au BufEnter *.vim syntax match PreProc /PeekInput/ containedin=ALL
 
 function! PeekReset() "{{{
   let s:peeknum = 0
   let files = split(globpath(s:peekdir, '*'),'\n')
+  let [mkdirname, flag] = [strftime('%Y%m%d_%H%M%S'), 0]
+  call mkdir(s:peekdir.mkdirname)
   for picked in files
     if getftype(picked) == 'file'
-      call delete(picked)
+      let flag = 1
+      call rename(picked, s:peekdir.mkdirname.'/'. fnamemodify(picked, ':t'))
     endif
   endfor
+  if !flag
+    call delete(s:peekdir.mkdirname)
+  endif
 endfunction "}}}
 
-function! PeekInput(Varname, varval, ...) "{{{
+function! PeekInput(Varname, varval) "{{{
   if s:peeknum == -1
     call PeekReset()
     let s:peeknum = 0
   endif
-  if a:0
-    if !empty(a:1)
-      let peeknum = a:1
-    else
-      let s:peeknum +=1
-      let peeknum = s:peeknum
-    endif
-  else
-    let s:peeknum +=1
-    let peeknum = s:peeknum
-  endif
+  let s:peeknum +=1
+  let peeknum = s:peeknum
+
+  let s:peeknum +=1
+  let peeknum = s:peeknum
 
   let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
   if a:Varname == ''
@@ -71,3 +73,6 @@ function! PeekEcho() "{{{
   echo echo
 endfunction "}}}
 
+"TODO
+"PeekReset時に古いものは日時ディレクトリ作成してそちらに待避させる
+"PeekInput時のスレッド引数

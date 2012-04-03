@@ -14,16 +14,13 @@ CONTENTS						*lcpeek_contents*
 <	すると名前と、変数の値が表示される。
  ・また、|g:peekdir|以下に、変数の値の変動を記録したファイルが作成される。
 
- ・こんな七面倒くさいツール使わなくても、いいデバッガーがあるよという人は
-	 ぜひ私に教えてください。
-
 ==============================================================================
 グローバル変数						*lcpeek-variables*
 
 g:peekdir						*g:peekdir*
 	（文字列  規定値： '~/'）
 	このディレクトリ以下に.lcpeek/ディレクトリが作成される。
-	.lcpeek/ディレクトリ以下には各名前{varname}をファイル名にしたファイル
+	.lcpeek/ディレクトリ以下には各名前{name}をファイル名にしたファイル
 	が作成される。
 	詳細は|PeekInput()|参照。
 
@@ -34,49 +31,45 @@ g:peekmsg						*g:peekmsg*
 	後に:messagesすることで変数の変化を追うのに使える。
 
 
-g:{varname}
+g:{name}
 	（リスト  規定値： []）
 	|PeekInput()|を呼ぶことで作成される。
-	末尾ににその時点の、名前{varname}の変数の値{varval}が収められていく。
+	末尾ににその時点の、名前{name}の変数の値{varval}が収められていく。
 
 ==============================================================================
 グローバル関数						*lcpeek-functions*
 
-PeekInput({varname}, {varval}, [{num}])			*PeekInput()*
+PeekInput({name}, {varval})				*PeekInput()*
 
-		{varname}	文字列
+		{name}		文字列
 		{varval}	何でも
-		{num}		数値
 
-	名前{varname}を付けて変数の値{varval}を記録する。
-	|g:peekdir|に名前{varname}をファイル名にしたファイルが作成される。
+	名前{name}を付けて変数の値{varval}を記録する。
+	|g:peekdir|に名前{name}をファイル名にしたファイルが作成される。
 	名前がファイル名に使えない文字を含むときは、全てファイル名に使える
 	文字(_)にリネームされる。
-	名前{varname}を空白文字''にするとstacktrace(どこで呼ばれたか)
+	名前{name}を空白文字''にするとstacktrace(どこで呼ばれたか)
 	を元にした名前が自動的に付加される。
 	ファイルの中身は一行が次のフォーマットである。
 
-		番号{num}:    値{varval}    stacktrace(どこで呼ばれたか)
+		実行順番:    値{varval}    stacktrace
 
-	同じ名前{varname}の変数が記録される度に、後に行が追加されていく。
+	同じ名前{name}の変数が記録される度に、後に行が追加されていく。
 	これにより、ある変数の値の変化を追うことが出来る。
-	番号{num}が省略された場合（または{num}がempty()==1の場合）、
-	番号はVimが起動してからPeekInput()が呼ばれた回数の合計値になる。
-	（例えば5回目に呼ばれたなら番号は'5'）
-	番号を辿ることにより、変数が記録された順番が分かる。
 
 
 PeekEcho()						*PeekEcho()*
-	それぞれの名前{varname}についての、最後に記録された値{varval}を表示
-	する。すなわち、それぞれの名前について、g:{varname}[-1]を表示する。 >
+	それぞれの名前{name}についての、最後に記録された値{varval}を表示
+	する。すなわち、それぞれの名前について、g:{name}[-1]を表示する。 >
 		noremap <Leader>k :call PeekEcho()<CR>
 <	のようにマッピングしておくといいかも。
 
 
 PeekReset()						*PeekReset()*
-	|g:peekdir|にある全てのファイルを削除し、PeekInput()が呼ばれた回数を
-	記録している変数に0を代入する。
-	つまり記録を全て破棄する。
+	|g:peekdir|に現在日時から命名したディレクトリを作成し、
+	|g:peekdir|にある全てのファイルをその中に移動させる(アーカイブする)。
+	PeekInput()が呼ばれた回数を記録している変数に0を代入する。
+	つまりファイル以外の記録を全て破棄する。
 	Vimが起動してから最初に|PeekInput()|が呼ばれたときにも呼ばれる。
 
 ==============================================================================
@@ -93,31 +86,30 @@ PeekReset()						*PeekReset()*
 		:  call add(s:list, s:j)
 		:  let listlen = len(s:list)
 
-		:  call PeekInput('s:list', s:list, s:i)
-		:  call PeekInput('listlen', listlen, s:i)
+		:  call PeekInput('s:list', s:list)
+		:  call PeekInput('listlen', listlen)
 		:endfunction
 <	記録したい変数についてPeekInput()を仕込む。
 	ここで、Test()を5回呼ぶと‥‥
 
 	.lcpeek/s_listファイルの中身 >
 		1:		[4]			function Test
-		2:		[4, 6]			function Test
-		3:		[4, 6, 8]		function Test
-		4:		[4, 6, 8, 10]		function Test
-		5:		[4, 6, 8, 10, 12]	function Test
+		3:		[4, 6]			function Test
+		5:		[4, 6, 8]		function Test
+		7:		[4, 6, 8, 10]		function Test
+		9:		[4, 6, 8, 10, 12]	function Test
 
 <	.lcpeek/listlenファイルの中身 >
-		1:		1		function Test
-		2:		2		function Test
-		3:		3		function Test
-		4:		4		function Test
-		5:		5		function Test
+		2:		1		function Test
+		4:		2		function Test
+		6:		3		function Test
+		8:		4		function Test
+		10:		5		function Test
 <
 	また、:call PeekEcho()すると以下が表示される。 >
 		LcPeek:
-		s_list =5:              [4, 6, 8, 10, 12]
-		function Test
-		listlen =5:             5               function Test  
+		s_list =9:	[4, 6, 8, 10, 12]	function Test
+		listlen =10:			5	function Test
 <
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:nolist:
