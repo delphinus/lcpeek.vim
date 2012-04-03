@@ -8,34 +8,49 @@ endif
 
 let s:peekdir = fnamemodify(g:peekdir, ':p').'.lcpeek/'
 let s:peeklist = []
-let s:peeknum = 0
+let s:peeknum = -1
 
 
-au VimEnter * call PeekReset()
 function! PeekReset() "{{{
   let s:peeknum = 0
   let files = split(globpath(s:peekdir, '*'),'\n')
   for picked in files
-    call delete(picked)
+    if getftype(picked) == 'file'
+      call delete(picked)
+    endif
   endfor
 endfunction "}}}
 
-function! PeekInput(varname, varval, ...) "{{{
+function! PeekInput(Varname, varval, ...) "{{{
+  if s:peeknum == -1
+    call PeekReset()
+    let s:peeknum = 0
+  endif
   if a:0
-    let peeknum = a:1
+    if !empty(a:1)
+      let peeknum = a:1
+    else
+      let s:peeknum +=1
+      let peeknum = s:peeknum
+    endif
   else
     let s:peeknum +=1
     let peeknum = s:peeknum
   endif
 
-  let varname = substitute(a:varname,'\V:\|/\|\\\|*\|?\|"\|<\|>\||', '_', 'g')
+  let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
+  if a:Varname == ''
+    let varname = substitute(substitute(stacktrace,'function ','','g'), '<SNR>', '__', 'g')
+  else
+    let varname = a:Varname
+  endif
+  let varname = substitute(varname, '\V:\|/\|\\\|*\|?\|"\|<\|>\||', '_', 'g')
 
   if !exists('g:'.varname)
     exe 'let g:'.varname.' = []'
     exe 'call add(s:peeklist, varname)'
   endif
 
-  let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
   exe 'call add(g:'.varname.', peeknum.":		".string(a:varval)."		".stacktrace)'
 
   if !isdirectory(s:peekdir)
@@ -44,7 +59,7 @@ function! PeekInput(varname, varval, ...) "{{{
   exe 'call writefile(g:'.varname.', s:peekdir.varname)'
 
   if g:peekmsg
-    echomsg printf('(%d:) %s = %s       [%s]', peeknum, a:varname , string(a:varval), stacktrace)
+    echomsg printf('(%d:) %s/%s = %s', peeknum, stacktrace, a:Varname , string(a:varval))
   endif
 endfunction "}}}
 
