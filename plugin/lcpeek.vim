@@ -5,6 +5,10 @@ endif
 if !exists('g:peekmsg')
   let g:peekmsg = 0
 endif
+if !exists('g:peekdisable')
+  let g:peekdisable = 0
+endif
+let g:peekmaster = []
 
 let s:peekdir = fnamemodify(g:peekdir, ':p').'.lcpeek/'
 let s:peeklist = []
@@ -16,20 +20,22 @@ au BufEnter *.vim syntax match PreProc /PeekInput/ containedin=ALL
 function! PeekReset() "{{{
   let s:peeknum = 0
   let files = split(globpath(s:peekdir, '*'),'\n')
-  let [mkdirname, flag] = [strftime('%Y%m%d_%H%M%S'), 0]
-  call mkdir(s:peekdir.mkdirname)
-  for picked in files
-    if getftype(picked) == 'file'
-      let flag = 1
-      call rename(picked, s:peekdir.mkdirname.'/'. fnamemodify(picked, ':t'))
-    endif
-  endfor
-  if !flag
-    call delete(s:peekdir.mkdirname)
+  let mkdirname = strftime('%Y%m%d_%H%M%S')
+  call filter(files, 'getftype(v:val) == "file"')
+  if !empty(files)
+    call mkdir(s:peekdir.mkdirname)
   endif
+  for picked in files
+    let flag = 1
+    call rename(picked, s:peekdir.mkdirname.'/'. fnamemodify(picked, ':t'))
+  endfor
 endfunction "}}}
 
 function! PeekInput(Varname, varval) "{{{
+  if g:peekdisable
+    return
+  endif
+
   if s:peeknum == -1
     call PeekReset()
     let s:peeknum = 0
@@ -37,12 +43,12 @@ function! PeekInput(Varname, varval) "{{{
   let s:peeknum +=1
   let peeknum = s:peeknum
 
-  let s:peeknum +=1
-  let peeknum = s:peeknum
-
   let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
   if a:Varname == ''
     let varname = substitute(substitute(stacktrace,'function ','','g'), '<SNR>', '__', 'g')
+  elseif a:Varname == 'peekmaster'
+    echoerr 'The "peekmaster" name is reserved.'
+    return
   else
     let varname = a:Varname
   endif
@@ -54,11 +60,13 @@ function! PeekInput(Varname, varval) "{{{
   endif
 
   exe 'call add(g:'.varname.', peeknum.":		".string(a:varval)."		".stacktrace)'
+  exe 'call add(g:peekmaster, peeknum.":".varname."		".string(a:varval)."		".stacktrace)'
 
   if !isdirectory(s:peekdir)
     call mkdir(s:peekdir)
   endif
   exe 'call writefile(g:'.varname.', s:peekdir.varname)'
+  exe 'call writefile(g:peekmaster, s:peekdir."peekmaster")'
 
   if g:peekmsg
     echomsg printf('(%d:) %s/%s = %s', peeknum, stacktrace, a:Varname , string(a:varval))
@@ -74,5 +82,4 @@ function! PeekEcho() "{{{
 endfunction "}}}
 
 "TODO
-"PeekReset時に古いものは日時ディレクトリ作成してそちらに待避させる
 "PeekInput時のスレッド引数

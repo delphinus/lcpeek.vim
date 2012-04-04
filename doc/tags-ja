@@ -3,6 +3,7 @@ PeekEcho()	lcpeek.jax	/*PeekEcho()*
 PeekInput()	lcpeek.jax	/*PeekInput()*
 PeekReset()	lcpeek.jax	/*PeekReset()*
 g:peekdir	lcpeek.jax	/*g:peekdir*
+g:peekdisable	lcpeek.jax	/*g:peekdisable*
 g:peekmsg	lcpeek.jax	/*g:peekmsg*
 lcpeek-functions	lcpeek.jax	/*lcpeek-functions*
 lcpeek-usage	lcpeek.jax	/*lcpeek-usage*
