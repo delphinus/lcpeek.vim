@@ -31,7 +31,7 @@ function! PeekReset() "{{{
   endfor
 endfunction "}}}
 
-function! PeekInput(Varname, varval) "{{{
+function! PeekInput(Varname, varval, ...) "{{{
   if g:peekdisable
     return
   endif
@@ -40,12 +40,13 @@ function! PeekInput(Varname, varval) "{{{
     call PeekReset()
     let s:peeknum = 0
   endif
+
   let s:peeknum +=1
   let peeknum = s:peeknum
 
-  let stacktrace = substitute(expand('<sfile>'), '..PeekInput', '' ,'')
+  let stacktrace = substitute(expand('<sfile>'), '\(..PeekInput\)\|\(function \)', '' ,'g')
   if a:Varname == ''
-    let varname = substitute(substitute(stacktrace,'function ','','g'), '<SNR>', '__', 'g')
+    let varname = substitute(stacktrace, '<SNR>', '__', 'g')
   elseif a:Varname == 'peekmaster'
     echoerr 'The "peekmaster" name is reserved.'
     return
@@ -53,14 +54,26 @@ function! PeekInput(Varname, varval) "{{{
     let varname = a:Varname
   endif
   let varname = substitute(varname, '\V:\|/\|\\\|*\|?\|"\|<\|>\||', '_', 'g')
+  let varval = a:varval
 
   if !exists('g:'.varname)
     exe 'let g:'.varname.' = []'
     exe 'call add(s:peeklist, varname)'
   endif
+  if a:0
+    if a:1 =~ 'add'
+      if !exists('s:'.varname)
+        exe 'let s:'.varname.'=0'
+      else
+        exe 'let s:'.varname.'+=1'
+      endif
+      exe 'let varval = varval + s:'.varname
+    endif
+  endif
 
-  exe 'call add(g:'.varname.', peeknum.":		".string(a:varval)."		".stacktrace)'
-  exe 'call add(g:peekmaster, peeknum.":".varname."		".string(a:varval)."		".stacktrace)'
+
+  exe 'call add(g:'.varname.', peeknum.":".stacktrace."		".string(varval))'
+  exe 'call add(g:peekmaster, peeknum.":".stacktrace."/".varname."		".string(varval))'
 
   if !isdirectory(s:peekdir)
     call mkdir(s:peekdir)
@@ -69,8 +82,9 @@ function! PeekInput(Varname, varval) "{{{
   exe 'call writefile(g:peekmaster, s:peekdir."peekmaster")'
 
   if g:peekmsg
-    echomsg printf('(%d:) %s/%s = %s', peeknum, stacktrace, a:Varname , string(a:varval))
+    echomsg printf('(%d:) %s/%s = %s', peeknum, stacktrace, a:Varname , string(varval))
   endif
+  return varval
 endfunction "}}}
 
 function! PeekEcho() "{{{

@@ -50,16 +50,18 @@ g:peekmaster
 ==============================================================================
 グローバル関数						*lcpeek-functions*
 
-PeekInput({name}, {varval})				*PeekInput()*
+PeekInput({name}, {varval}, [{flag}])				*PeekInput()*
 
 		{name}		文字列
 		{varval}	何でも
+		{flag}		文字列 "add"
 
 	名前{name}を付けて変数の値{varval}を記録する。
+	登録した値{varval}を返す。
 	|g:peekdir|に名前{name}をファイル名にしたファイルが作成される。
 	名前がファイル名に使えない文字を含むときは、全てファイル名に使える
 	文字(_)にリネームされる。
-	名前{name}を空白文字''にするとstacktrace(どこで呼ばれたか)
+	名前{name}を空白文字""にするとstacktrace(どこで呼ばれたか)
 	を元にした名前が自動的に付加される。
 	ファイルの中身は一行が次のフォーマットである。
 
@@ -70,6 +72,9 @@ PeekInput({name}, {varval})				*PeekInput()*
 
 	名前ごとでなく、全ての記録を閲覧したいときにはpeekmasterというファイル
 	がある。lcpeekが記録した処理が全て書かれたものである。
+
+	{flag}に"add"を指定するときは、{varval}は数値でなければいけない。
+	以降、呼ばれた回数だけ{varval}に1を加えた値を記録する。
 
 
 PeekEcho()						*PeekEcho()*
